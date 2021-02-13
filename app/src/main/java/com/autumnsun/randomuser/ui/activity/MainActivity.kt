@@ -3,6 +3,7 @@ package com.autumnsun.randomuser.ui.activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.autumnsun.randomuser.R
@@ -15,9 +16,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.appcompat.widget.SearchView
 
 class MainActivity : AppCompatActivity() {
+
     private val apiClient by lazy { ApiClient.getApiClient() }
+    private lateinit var adapter:UserAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -38,7 +43,8 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
                 Log.d("mainActivity", response.body()?.userList?.size.toString())
                 if (response.isSuccessful) {
-                    recyclerview.adapter = UserAdapter(response.body()?.userList!!)
+                    adapter=UserAdapter(response.body()?.userList!!)
+                    recyclerview.adapter = adapter
                     progressBar.gone()
                     recyclerview.visible()
                     swipe_refresh_layout.isRefreshing = false
@@ -47,4 +53,27 @@ class MainActivity : AppCompatActivity() {
 
         })
     }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        val searchItem = menu?.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                query?.let { Log.d("onQueryTextSubmit", it) }
+                adapter.getFilter().filter(query)
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let { Log.d("onQueryTextChange", it) }
+                adapter.getFilter().filter(newText)
+                return false
+            }
+
+        })
+        return true
+    }
+
 }
