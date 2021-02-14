@@ -5,14 +5,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.autumnsun.randomuser.R
 import com.autumnsun.randomuser.model.Results
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
 
-class UserAdapter(var userList: ArrayList<Results>) :
+class UserAdapter(var userList: ArrayList<Results>, var onUserClickListener: OnUserClickListener) :
     RecyclerView.Adapter<UserAdapter.ViewHolder>(), Filterable {
 
     var userFilterList = ArrayList<Results>(userList)
@@ -34,6 +36,15 @@ class UserAdapter(var userList: ArrayList<Results>) :
         holder.userName.text = "${userList[position].name.first} ${userList[position].name.last}"
         holder.email.text = userList[position].email
         Picasso.get().load(userList[position].picture.large).into(holder.userImage)
+
+        ViewCompat.setTransitionName(
+            holder.userImage,
+            "${userList[position].name.first} ${userList[position].name.last}"
+        )
+
+        holder.itemView.setOnClickListener {
+            onUserClickListener.onUserClickListener(userList[position], holder.userImage)
+        }
     }
 
     override fun getFilter(): Filter = object : Filter() {
@@ -60,6 +71,10 @@ class UserAdapter(var userList: ArrayList<Results>) :
             notifyDataSetChanged()
         }
 
+    }
+
+    interface OnUserClickListener {
+        fun onUserClickListener(results: Results, sharedImageView: ImageView)
     }
 
 
